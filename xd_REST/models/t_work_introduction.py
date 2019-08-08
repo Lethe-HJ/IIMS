@@ -1,5 +1,6 @@
 # coding: utf-8
-from sqlalchemy import CHAR, Column, DECIMAL, Date, DateTime, Float, ForeignKey, Index, JSON, String, TIMESTAMP, Table, Text, text
+from sqlalchemy import CHAR, Column, DECIMAL, Date, DateTime, Float, ForeignKey, Index, JSON, String, TIMESTAMP, Table, \
+    Text, text, exc
 from sqlalchemy.dialects.mysql import BIGINT, ENUM, INTEGER, TIMESTAMP, TINYINT, VARCHAR
 from sqlalchemy.orm import relationship
 from sqlalchemy import CHAR, Column, DateTime, String, or_, and_, desc
@@ -9,6 +10,7 @@ from .t_work_property import TWorkProperty
 from .t_staff import TStaff
 from xd_REST import session
 from flask import current_app, g
+from xd_REST.logger import error_log
 
 
 class TWorkIntroduction(Base):
@@ -52,7 +54,6 @@ class TWorkIntroduction(Base):
         his_intros = session.execute(sql_1, args_1)  # @1 执行的sql代码见本文件末尾
         return his_intros
 
-
     @staticmethod
     def himself_intros(detail):
         """
@@ -68,8 +69,8 @@ class TWorkIntroduction(Base):
         # 查询当前用户的所有工作简介 按创建时间排序
         his_dailies = session.query(tb_intro).filter_by(staff_id=current_user) \
             .order_by(desc(tb_intro.create_date)).all()
+        # session.remove()
         return tb_intro.pack_intro_data(his_dailies, detail)
-
 
     @staticmethod
     def query_daily(detail, query=None):
@@ -81,25 +82,26 @@ class TWorkIntroduction(Base):
         """
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
         his_intros = tb_intro.search_entries_projects(query)  # 获取给搜索栏的条目
-        return tb_intro.pack_intro_data(his_intros, detail)
-
+        data = tb_intro.pack_intro_data(his_intros, detail)
+        message = "无此信息,请换个词试试" if data == [] else "信息查询成功"
+        return True, message, data
 
     @staticmethod
     def pack_intro_data(intros, detail=None):
         data_li = []
         for intro in intros:  # 遍历当前用户的所有工作简介条目
-            data = {}  # 每次循环需要重新新建data字典
+            data = dict()  # 每次循环需要重新新建data字典
             data["intro_id"] = intro.id  # 工作日报id
             # 项目名称
             data["project_name"] = session.query(TbProject.project_name).filter_by(id=intro.project_id).first()[0]
             data["work_intro"] = intro.work_intro  # 工作日期
             if detail:  # 详细查询要多出工时,具体事项字段
                 data["work_address"] = intro.work_address  # 工作地址
-                data["work_property"] = session.query(TWorkProperty.work_property_name)\
-                        .filter_by(id=intro.work_property_id).first()
+                data["work_property"] = session.query(TWorkProperty.work_property_name) \
+                    .filter_by(id=intro.work_property_id).first()
             data_li.append(data)  # 将data字典添加到data_li数组尾部
-        return data_li
 
+        return data_li
 
     @staticmethod
     def his_all_intros():
@@ -118,9 +120,9 @@ class TWorkIntroduction(Base):
         """
         tb_intros = TWorkIntroduction
         # 查询工作简介名称中含query_like的条目的id与work_intro
-        condition = and_(tb_intros.work_intro.like(query_like), tb_intros.staff_id==g.user.id)
+        condition = and_(tb_intros.work_intro.like(query_like), tb_intros.staff_id == g.user.id)
         if project_id:  # 如果有project_id 则将其加入and条件中
-            condition = and_(condition, tb_intros.project_id==project_id)
+            condition = and_(condition, tb_intros.project_id == project_id)
         intros = session.query(tb_intros.id, tb_intros.work_intro) \
             .filter(condition).order_by(desc(tb_intros.create_date)).all()
         return [{"id": i[0], "name": i[1]} for i in intros]  # 列表生成
@@ -130,9 +132,13 @@ class TWorkIntroduction(Base):
         the_intro = TWorkIntroduction(**intro)
         the_intro.staff_id = g.user.id
         the_intro.staff_name = session.query(TStaff.staff_name).filter_by(id=g.user.id).first()[0]
-        session.add(the_intro)
-        session.commit()
-
+        try:
+            session.add(the_intro)
+            session.commit()
+        except exc.SQLAlchemyError as e:
+            session.rollback()
+            return False, "数据提交失败"
+        return True, "数据提交成功"
 
     @staticmethod
     def edit_intro(intro_id, **kwargs):
@@ -145,33 +151,36 @@ class TWorkIntroduction(Base):
             session.commit()
             return True, "工作简介修改成功"
 
-
     @staticmethod
     def get_the_intro(intro_id):
         data = {}  # 每次循环需要重新新建data字典
         intro = session.query(TWorkIntroduction).filter_by(id=intro_id).first()
+        if intro is None:
+            return False, "无此工作简介", data
         if intro.staff_id != g.user.id:
             return False, "不能查看他人的工作简介", data
         data["intro_id"] = intro.id  # 工作简介id
         data["work_intro"] = intro.work_intro  # 工作简介名称
+        data["project_id"] = intro.project_id  # 工作简介id
         data["project_name"] = session.query(TbProject.project_name) \
             .filter_by(id=intro.project_id).first()[0]  # 项目名称
         data["work_address"] = intro.work_address  # 工作地址
         # 查询这个工作简介对应的工作性质
-        data["work_property"] = session.query(TWorkProperty.work_property_name) \
-            .filter_by(id=intro.work_property_id).first()[0]
+        the_property = session.query(TWorkProperty.work_property_name, TWorkProperty.id) \
+            .filter_by(id=intro.work_property_id).first()
+        data["work_property"] = the_property.work_property_name
+        data["work_property_id"] = the_property.id
+        data["remarks"] = intro.remarks  # 备注
         return True, "数据查询成功", data
-
 
     @staticmethod
     def intros_of_project(project_id):
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
         # 查询当前项目 当前用户对应 的工作简介
-        his_intros = session.query(tb_intro.id, tb_intro.work_intro)\
-            .filter(and_(tb_intro.staff_id==g.user.id, tb_intro.project_id==project_id))\
+        his_intros = session.query(tb_intro.id, tb_intro.work_intro) \
+            .filter(and_(tb_intro.staff_id == g.user.id, tb_intro.project_id == project_id)) \
             .order_by(desc(tb_intro.create_date)).all()
         return [{"id": i.id, "name": i.work_intro} for i in his_intros]  # 列表生成
-
 
     @staticmethod
     def search_his_intros(query_like, project_id):
@@ -179,13 +188,12 @@ class TWorkIntroduction(Base):
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
         query_like = "%{}%".format(query_like)
         intros = session.query(tb_intro.id, tb_intro.work_intro) \
-            .filter(and_(tb_intro.work_intro.like(query_like), tb_intro.staff_id==g.user.id, tb_intro.project_id==project_id)) \
+            .filter(and_(tb_intro.work_intro.like(query_like), tb_intro.staff_id == g.user.id,
+                         tb_intro.project_id == project_id)) \
             .order_by(desc(tb_intro.create_date)).all()
         data = [{"id": i[0], "name": i[1]} for i in intros]  # 列表生成
         return data
         # 结构[{},] 示例 [{"id": 9676, "name": '美签项目 自动填表功能技术验证'},]
-
-
 
 # @1处的查询sql语句
 # SELECT id, work_intro, project_id, work_address, work_property_id

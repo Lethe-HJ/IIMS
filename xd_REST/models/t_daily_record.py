@@ -14,6 +14,7 @@ from .t_work_introduction import TWorkIntroduction as TbIntro
 from .t_project_summary import TProjectSummary as TbProject
 from .t_staff import TStaff
 from xd_REST import session
+from xd_REST.logger import error_log
 
 
 class TDailyRecord(Base):
@@ -39,8 +40,8 @@ class TDailyRecord(Base):
 
     business_unit = relationship('TBusinessUnit')
 
-
     @staticmethod
+    @error_log
     def his_all_daily(detail):
         """
         获取当前用户的工作日报
@@ -57,6 +58,7 @@ class TDailyRecord(Base):
 
 
     @staticmethod
+    @error_log
     def query_daily(detail, query=None):
         """
         获取当前用户的工作日报
@@ -70,6 +72,7 @@ class TDailyRecord(Base):
 
 
     @staticmethod
+    @error_log
     def pack_daily_data(dailies, detail=None):
         data_li = []
         for daily in dailies:  # 遍历当前用户的所有工作简介条目
@@ -88,6 +91,7 @@ class TDailyRecord(Base):
 
 
     @staticmethod
+    @error_log
     def add_daily(**kwargs):
         kwargs["staff_id"] = g.user.id
         daily = TDailyRecord(**kwargs)
@@ -98,6 +102,7 @@ class TDailyRecord(Base):
 
 
     @staticmethod
+    @error_log
     def edit_daily(daily_id, **kwargs):
         the_daily = session.query(TDailyRecord).filter_by(id=daily_id)
         if the_daily.first().staff_id != g.user.id:
@@ -109,6 +114,7 @@ class TDailyRecord(Base):
 
 
     @staticmethod
+    @error_log
     def search_bar_entries(query):
         """
         查询给搜索栏的条目
@@ -136,6 +142,7 @@ class TDailyRecord(Base):
 
 
     @staticmethod
+    @error_log
     def get_the_daily(daily_id):
         data = {}  # 每次循环需要重新新建data字典
         daily = session.query(TDailyRecord).filter_by(id=daily_id).first()

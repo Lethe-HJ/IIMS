@@ -10,6 +10,7 @@ from xd_REST.libs.aes import encrypt_oracle, decrypt_oracle
 from sqlalchemy import CHAR, Column, DateTime, String, or_
 from xd_REST import app, cache
 from . import Base, metadata
+from xd_REST.logger import error_log
 
 
 class TWorkProperty(Base):
@@ -23,6 +24,7 @@ class TWorkProperty(Base):
     remarks = Column(String(255, 'utf8_croatian_ci'), comment='备注')
 
     @staticmethod
+    @error_log
     def all_properties():
         """
         查询工作性质

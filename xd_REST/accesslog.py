@@ -1,8 +1,11 @@
-﻿from xd_REST import app, sysdb
-from flask import request, g
+﻿from datetime import datetime
 from time import clock
+
+from flask import request, g
+
+from xd_REST import app, sysdb
 from xd_REST.models.rest_accesslog import RestAccesslog
-from datetime import datetime
+
 
 @app.before_request
 def before_request():
@@ -16,23 +19,24 @@ def before_request():
         view_description = ''
 
     accesslog = RestAccesslog(
-        remote_addr = request.remote_addr,
-        tm = datetime.now(),
-        method = request.method,
-        url = request.url,
-        description = view_description
+        remote_addr=request.remote_addr,
+        tm=datetime.now(),
+        method=request.method,
+        url=request.url,
+        description=view_description
     )
-    
+
     if request.url.find("/static/") == -1 and request.url.find("/schedule/run") == -1:
         sysdb.session.add(accesslog)
         sysdb.session.commit()
 
     g.accesslog = accesslog
 
+
 @app.after_request
 def after_request(response):
     request.finish = clock()
-    
+
     accesslog = g.accesslog
 
     accesslog.duration = 1000 * (request.finish - request.start)
@@ -49,10 +53,10 @@ def after_request(response):
     if response.status_code >= 400 and response.status_code <= 500:
         accesslog.error_message = response.data[:255]
         app.logger.info("%s@%s %4d ms %6s bytes %s %s %s %s" % (
-            accesslog.name, 
-            accesslog.remote_addr, 
-            accesslog.duration, 
-            accesslog.length, 
+            accesslog.name,
+            accesslog.remote_addr,
+            accesslog.duration,
+            accesslog.length,
             accesslog.status,
             accesslog.method,
             accesslog.url,
@@ -63,10 +67,10 @@ def after_request(response):
 
     if request.url.find("/schedule/run") == -1:
         app.logger.info("%s@%s %4d ms %6s bytes %s %s %s" % (
-            accesslog.name, 
-            accesslog.remote_addr, 
-            accesslog.duration, 
-            accesslog.length, 
+            accesslog.name,
+            accesslog.remote_addr,
+            accesslog.duration,
+            accesslog.length,
             accesslog.status,
             accesslog.method,
             accesslog.url))

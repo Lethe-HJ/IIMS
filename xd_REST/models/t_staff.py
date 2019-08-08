@@ -11,6 +11,7 @@ from sqlalchemy import CHAR, Column, DateTime, String, or_
 from xd_REST import app, cache
 from . import Base, metadata
 from .t_business_unit import TBusinessUnit
+from xd_REST.logger import error_log
 
 
 class TStaff(Base):

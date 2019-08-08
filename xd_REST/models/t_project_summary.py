@@ -11,12 +11,14 @@ from sqlalchemy import CHAR, Column, DateTime, String, or_, desc
 from xd_REST import app, cache
 from . import Base, metadata
 from xd_REST import session
+from xd_REST.logger import error_log
 
 
 class TProjectSummary(Base):
     __tablename__ = 't_project_summary'
 
-    id = Column(String(255, 'utf8_croatian_ci'), primary_key=True, index=True, comment='项目主键id 注:用varchar的原因为要使用UUID方式存储')
+    id = Column(String(255, 'utf8_croatian_ci'), primary_key=True, index=True,
+                comment='项目主键id 注:用varchar的原因为要使用UUID方式存储')
     project_type = Column(String(50, 'utf8_croatian_ci'), comment='项目类型 从字典表(t_dict)获取')
     project_number = Column(String(255, 'utf8_croatian_ci'), comment='项目编号')
     project_name = Column(String(255, 'utf8_croatian_ci'), comment='项目的名字')
@@ -39,9 +41,10 @@ class TProjectSummary(Base):
     remarks = Column(String(255, 'utf8_croatian_ci'), comment='备注')
 
     @staticmethod
+    @error_log
     def all_projects(items):
         tb_project = TProjectSummary
-        projects = session.query(tb_project.id, tb_project.project_name)\
+        projects = session.query(tb_project.id, tb_project.project_name) \
             .order_by(desc(tb_project.create_date))
         if not items:  # 默认返回所有的数条目
             projects = projects.all()  # 获取所有的项目数据
@@ -51,6 +54,7 @@ class TProjectSummary(Base):
         # 结构[{},] 示例 [{"id": '005d5b45-4e34-4eb9-b68b-30e0199b6aa5', "name": '宝鸡二维码改造'},]
 
     @staticmethod
+    @error_log
     def fuzzy_query_by_name(query_like):
         """
         查询项目名称中含query_like的条目 并按照日期降序排列
@@ -60,8 +64,8 @@ class TProjectSummary(Base):
         tb_project = TProjectSummary
         # 查询项目名称中含query_like的条目的id与project_name
         query_like = "%{}%".format(query_like)
-        projects = session.query(tb_project.id, tb_project.project_name)\
-            .filter(tb_project.project_name.like(query_like))\
+        projects = session.query(tb_project.id, tb_project.project_name) \
+            .filter(tb_project.project_name.like(query_like)) \
             .order_by(desc(tb_project.create_date)).all()
         data = [{"id": i[0], "name": i[1]} for i in projects]  # 列表生成
         return True, "数据查询成功", data

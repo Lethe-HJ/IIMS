@@ -9,7 +9,7 @@ from xd_REST.models.t_staff import TStaff
 from xd_REST.models.t_work_property import TWorkProperty as TbProperty
 from xd_REST.models.t_daily_record import TDailyRecord as TbDaily
 from xd_REST.logger import error_log
-
+import json
 
 @error_log
 @app.route('/iims/dailies/data', methods=["GET"])
@@ -57,19 +57,47 @@ def dailies_add():
     result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
     args = {}
     try:
-        args['work_hours'] = request.json['work_hours']
-        args['work_matters'] = request.json['work_matters']
-        args['project_id'] = request.json['project_id']
-        args['workintro_id'] = request.json['workintro_id']
-        args['work_date'] = request.json['work_date']
+        args['WorkHours'] = request.json['work_hours']
+        args['WorkMatters'] = request.json['work_matters']
+        args['ProjectID'] = request.json['project_id']
+        args['workintroId'] = request.json['workintro_id']
+        args['WorkDate'] = request.json['work_date']
     except KeyError as e:
         result["message"] = e.args[0] + "字段不能为空"
         result["status"] = "0"
         return result
     work_matters = request.json.get('work_matters', None)  # remark字段可以为空
-    args['work_matters'] = work_matters
+    args['WorkMatters'] = work_matters
     TbDaily.add_daily(**args)
     result["message"] = "添加工作日报成功"
+    return result
+
+
+@error_log
+@app.route('/iims/dailies/edit', methods=["PUT"])
+@auth.auth_required
+def dailies_edit():
+    """
+    日报编辑提交接口d5
+    :return: dst.my_json字典
+    """
+    result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
+    args = {}
+    try:
+        daily_id = request.json['daily_id']
+        args['WorkHours'] = request.json['work_hours']
+        args['WorkMatters'] = request.json['work_matters']
+        args['ProjectID'] = request.json['project_id']
+        args['workintroId'] = request.json['workintro_id']
+        args['WorkDate'] = request.json['work_date']
+    except KeyError as e:
+        result["message"] = e.args[0] + "字段不能为空"
+        result["status"] = "0"
+        return result
+    work_matters = request.json.get('work_matters', None)  # remark字段可以为空
+    args['WorkMatters'] = work_matters
+    success, result["message"] = TbDaily.edit_daily(daily_id, **args)
+    result["status"] = 1 if success else 0
     return result
 
 
@@ -93,32 +121,4 @@ def dailies_edit_data():
 
     # 查询当前工作日报的编辑信息
     success, result["message"], result["data"] = TbDaily.get_the_daily(daily_id)
-    return result
-
-
-@error_log
-@app.route('/iims/dailies/edit', methods=["PUT"])
-@auth.auth_required
-def dailies_edit():
-    """
-    日报编辑提交接口d5
-    :return: dst.my_json字典
-    """
-    result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
-    args = {}
-    try:
-        daily_id = request.json['daily_id']
-        args['work_hours'] = request.json['work_hours']
-        args['work_matters'] = request.json['work_matters']
-        args['project_id'] = request.json['project_id']
-        args['workintro_id'] = request.json['workintro_id']
-        args['work_date'] = request.json['work_date']
-    except KeyError as e:
-        result["message"] = e.args[0] + "字段不能为空"
-        result["status"] = "0"
-        return result
-    work_matters = request.json.get('work_matters', None)  # remark字段可以为空
-    args['work_matters'] = work_matters
-    success, result["message"] = TbDaily.edit_daily(daily_id, **args)
-    result["status"] = 1 if success else 0
     return result

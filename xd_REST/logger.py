@@ -52,10 +52,6 @@ def errorhandler_500(error):
     return error.description, status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-# @app.errorhandler(BaseException)
-# def errorhandler_Base(error):
-#     app.logger.info(error.description.encode("utf-8"))
-#     return error.description, status.HTTP_500_INTERNAL_SERVER_ERROR
 ERROR_LOG_PATH = getExePath()+'Logs/error/%s.log' %(time.strftime('%Y%m%d'))
 
 

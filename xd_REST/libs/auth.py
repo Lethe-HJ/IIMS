@@ -13,7 +13,7 @@ auth = HTTPBasicAuth()
 
 
 def verify_account(username, password):
-    user = db.session.query(TStaff).filter(TStaff.staff_name == username)
+    user = db.session.query(TStaff).filter(TStaff.StaffName == username)
     g.user_query = user  # 保存这个查询
     user = user.first()
     if not user:
@@ -37,6 +37,7 @@ def get_token():
 
     return token_type, token
 
+
 def validate_token(token):
     # 验证token的有效性
     data = TStaff.verify_parse_token(token)
@@ -49,7 +50,7 @@ def validate_token(token):
         app.logger.error("用户登录token[%s]缓存中不存在"% token)
         return False
 
-    user = db.session.query(TStaff).filter_by(id=data['id']).first()
+    user = db.session.query(TStaff).filter_by(ID=data['id']).first()
     if user is None:
         return False
     g.user = user

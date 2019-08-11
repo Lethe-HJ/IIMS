@@ -1,6 +1,6 @@
 # coding: utf-8
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Table, Text, text
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Table, Text, text, Unicode
 from sqlalchemy.dialects.mysql.enumerated import ENUM
 from flask import current_app, g
 from sqlalchemy.dialects.mysql import BIGINT, JSON, ENUM, INTEGER, TIMESTAMP, TINYINT, VARCHAR
@@ -14,14 +14,13 @@ from xd_REST.logger import error_log
 
 
 class TWorkProperty(Base):
-    __tablename__ = 't_work_property'
+    __tablename__ = 'T_WorkProperty'
 
-    id = Column(BIGINT(20), primary_key=True, comment='工作性质ID')
-    create_date = Column(TIMESTAMP(fsp=6), server_default=text("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)"), comment='创建时间')
-    work_property_name = Column(String(255, 'utf8_croatian_ci'), comment='工作性质')
-    create_user = Column(BIGINT(20), comment='创建人')
-    department = Column(String(255, 'utf8_croatian_ci'), comment='部门')
-    remarks = Column(String(255, 'utf8_croatian_ci'), comment='备注')
+    id = Column(Integer, primary_key=True)
+    workpropertyname = Column(Unicode(50))
+    remarks = Column(Unicode(200))
+    create_date = Column(DateTime)
+    create_user = Column(Integer)
 
     @staticmethod
     @error_log
@@ -32,5 +31,5 @@ class TWorkProperty(Base):
         """
         tb_property = TWorkProperty
         # 查询工作性质
-        properties = session.query(tb_property.id, tb_property.work_property_name).all()
+        properties = session.query(tb_property.id, tb_property.workpropertyname).all()
         return [{"id": i[0], "name": i[1]} for i in properties]  # 列表生成

@@ -1,6 +1,6 @@
 # coding: utf-8
-from sqlalchemy import CHAR, Column, DECIMAL, Date, DateTime, Float, ForeignKey, Index, JSON, String, TIMESTAMP, Table, \
-    Text, text, exc
+from sqlalchemy import CHAR, Column, DECIMAL, Date, DateTime, Float, ForeignKey, Index, JSON, String, TIMESTAMP,\
+    Table, Text, text, exc, Unicode, Integer
 from sqlalchemy.dialects.mysql import BIGINT, ENUM, INTEGER, TIMESTAMP, TINYINT, VARCHAR
 from sqlalchemy.orm import relationship
 from sqlalchemy import CHAR, Column, DateTime, String, or_, and_, desc
@@ -14,23 +14,20 @@ from xd_REST.logger import error_log
 
 
 class TWorkIntroduction(Base):
-    __tablename__ = 't_work_introduction'
+    __tablename__ = 'T_WorkIntroduction'
 
-    id = Column(BIGINT(20), primary_key=True, comment='工作简介主键id')
-    s_number = Column(BIGINT(11), comment='序号')
-    work_address = Column(String(50, 'utf8_croatian_ci'), comment='工作地址')
-    work_property_id = Column(ForeignKey('t_work_property.id'), index=True, comment='工作性质')
-    project_id = Column(String(255, 'utf8_croatian_ci'), index=True, comment='项目id')
-    work_intro = Column(String(300, 'utf8_croatian_ci'), comment='工作简介')
-    create_date = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
-    staff_id = Column(ForeignKey('t_staff.id'), index=True, comment='人员ID')
-    staff_name = Column(String(50, 'utf8_croatian_ci'), comment='人员姓名')
-    work_status = Column(BIGINT(255), comment='工作状态')
-    json = Column(JSON, comment='JSON类型用于工作简介后续扩展开发')
-    remarks = Column(String(200, 'utf8_croatian_ci'), comment='备注')
-
-    staff = relationship('TStaff')
-    work_property = relationship('TWorkProperty')
+    id = Column(Integer, primary_key=True)
+    snumber = Column(Integer)
+    workaddress = Column(Integer, server_default=text("((0))"))
+    workproperty = Column(Integer)
+    projectid = Column(Unicode(50))
+    workintro = Column(Unicode(100))
+    create_date = Column(DateTime)
+    create_user = Column(Integer)
+    update_date = Column(DateTime)
+    remarks = Column(Unicode(100))
+    userid = Column(Integer)
+    username = Column(Unicode(50))
 
     @staticmethod
     def search_entries_projects(query):
@@ -40,36 +37,34 @@ class TWorkIntroduction(Base):
         """
         # 如果query是项目 查询query值相应的项目的id
         sql_0 = """
-            SELECT id
-            FROM t_project_summary
-            WHERE project_name LIKE :query"""
+            SELECT ID
+            FROM T_ProjectSummary
+            WHERE ProjectName LIKE :query"""
         # 查询 (这个项目id对应的工作简介条目 或 query值为工作简介内容的)且必为当前用户创建的 工作简介条目
         sql_1 = """
-            SELECT id, work_intro, project_id, work_address, work_property_id, staff_id
-            FROM t_work_introduction
-            WHERE (work_intro LIKE :query OR project_id IN ({0})) AND staff_id=:staff_id
+            SELECT id, workintro, projectid, workaddress, workproperty, userid
+            FROM T_WorkIntroduction
+            WHERE (workintro LIKE :query OR projectid IN ({0})) AND userid=:userid
             ORDER BY create_date DESC;
                 """.format(sql_0)  # 嵌套查询 这个查询比较复杂 所以用原生sql来查
-        args_1 = {"query": "%{}%".format(query), "staff_id": g.user.id}
+        args_1 = {"query": "%{}%".format(query), "userid": g.user.ID}
         his_intros = session.execute(sql_1, args_1)  # @1 执行的sql代码见本文件末尾
-        return his_intros
+        return his_intros.fetchall()
 
     @staticmethod
     def himself_intros(detail):
         """
         获取当前用户的工作简介
         :param detail: 详细与否
-        :param query: 查询的信息
         :return: data字典
         """
         data_li = []
-        current_user = g.user.id
+        current_user = g.user.ID
         # current_user = 199
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
         # 查询当前用户的所有工作简介 按创建时间排序
-        his_dailies = session.query(tb_intro).filter_by(staff_id=current_user) \
+        his_dailies = session.query(tb_intro).filter_by(userid=current_user) \
             .order_by(desc(tb_intro.create_date)).all()
-        # session.remove()
         return tb_intro.pack_intro_data(his_dailies, detail)
 
     @staticmethod
@@ -93,12 +88,12 @@ class TWorkIntroduction(Base):
             data = dict()  # 每次循环需要重新新建data字典
             data["intro_id"] = intro.id  # 工作日报id
             # 项目名称
-            data["project_name"] = session.query(TbProject.project_name).filter_by(id=intro.project_id).first()[0]
-            data["work_intro"] = intro.work_intro  # 工作日期
+            data["project_name"] = session.query(TbProject.ProjectName).filter_by(ID=intro.projectid).first()[0]
+            data["work_intro"] = intro.workintro  # 工作日期
             if detail:  # 详细查询要多出工时,具体事项字段
-                data["work_address"] = intro.work_address  # 工作地址
-                data["work_property"] = session.query(TWorkProperty.work_property_name) \
-                    .filter_by(id=intro.work_property_id).first()
+                data["work_address"] = intro.workaddress  # 工作地址
+                data["work_property"] = session.query(TWorkProperty.workpropertyname) \
+                    .filter_by(id=intro.workproperty).first()
             data_li.append(data)  # 将data字典添加到data_li数组尾部
 
         return data_li
@@ -106,8 +101,8 @@ class TWorkIntroduction(Base):
     @staticmethod
     def his_all_intros():
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
-        his_intros = session.query(tb_intro.id, tb_intro.work_intro).filter_by(staff_id=g.user.id).all()
-        return [{"id": i.id, "name": i.work_intro} for i in his_intros]  # 列表生成
+        his_intros = session.query(tb_intro.id, tb_intro.workintro).filter_by(userid=g.user.ID).all()
+        return [{"id": i.id, "name": i.workintro} for i in his_intros]  # 列表生成
         # 结构[{},] 示例 [{"id": 9676, "name": '美签项目 自动填表功能技术验证'},]
 
     @staticmethod
@@ -120,18 +115,19 @@ class TWorkIntroduction(Base):
         """
         tb_intros = TWorkIntroduction
         # 查询工作简介名称中含query_like的条目的id与work_intro
-        condition = and_(tb_intros.work_intro.like(query_like), tb_intros.staff_id == g.user.id)
+        condition = and_(tb_intros.workintro.like(query_like), tb_intros.userid == g.user.ID)
         if project_id:  # 如果有project_id 则将其加入and条件中
-            condition = and_(condition, tb_intros.project_id == project_id)
-        intros = session.query(tb_intros.id, tb_intros.work_intro) \
+            condition = and_(condition, tb_intros.projectid == project_id)
+        intros = session.query(tb_intros.id, tb_intros.workintro) \
             .filter(condition).order_by(desc(tb_intros.create_date)).all()
         return [{"id": i[0], "name": i[1]} for i in intros]  # 列表生成
 
     @staticmethod
     def add_intro(**intro):
         the_intro = TWorkIntroduction(**intro)
-        the_intro.staff_id = g.user.id
-        the_intro.staff_name = session.query(TStaff.staff_name).filter_by(id=g.user.id).first()[0]
+        the_intro.userid = g.user.ID
+        the_intro.create_user = g.user.ID
+        the_intro.username = session.query(TStaff.StaffName).filter_by(ID=g.user.ID).first()[0]
         try:
             session.add(the_intro)
             session.commit()
@@ -144,7 +140,7 @@ class TWorkIntroduction(Base):
     def edit_intro(intro_id, **kwargs):
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
         the_intro = session.query(tb_intro).filter_by(id=intro_id)
-        if the_intro.first().staff_id != g.user.id:
+        if the_intro.first().userid != g.user.ID:
             return False, "不能修改他人创建的工作简介"
         else:
             the_intro.update(kwargs)
@@ -157,18 +153,18 @@ class TWorkIntroduction(Base):
         intro = session.query(TWorkIntroduction).filter_by(id=intro_id).first()
         if intro is None:
             return False, "无此工作简介", data
-        if intro.staff_id != g.user.id:
+        if intro.userid != g.user.ID:
             return False, "不能查看他人的工作简介", data
         data["intro_id"] = intro.id  # 工作简介id
-        data["work_intro"] = intro.work_intro  # 工作简介名称
-        data["project_id"] = intro.project_id  # 工作简介id
-        data["project_name"] = session.query(TbProject.project_name) \
-            .filter_by(id=intro.project_id).first()[0]  # 项目名称
-        data["work_address"] = intro.work_address  # 工作地址
+        data["work_intro"] = intro.workintro  # 工作简介名称
+        data["project_id"] = intro.projectid  # 工作简介id
+        data["project_name"] = session.query(TbProject.ProjectName) \
+            .filter_by(ID=intro.projectid).first()[0]  # 项目名称
+        data["work_address"] = intro.workaddress  # 工作地址
         # 查询这个工作简介对应的工作性质
-        the_property = session.query(TWorkProperty.work_property_name, TWorkProperty.id) \
-            .filter_by(id=intro.work_property_id).first()
-        data["work_property"] = the_property.work_property_name
+        the_property = session.query(TWorkProperty.workpropertyname, TWorkProperty.id) \
+            .filter_by(id=intro.workproperty).first()
+        data["work_property"] = the_property.workpropertyname
         data["work_property_id"] = the_property.id
         data["remarks"] = intro.remarks  # 备注
         return True, "数据查询成功", data
@@ -177,19 +173,19 @@ class TWorkIntroduction(Base):
     def intros_of_project(project_id):
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
         # 查询当前项目 当前用户对应 的工作简介
-        his_intros = session.query(tb_intro.id, tb_intro.work_intro) \
-            .filter(and_(tb_intro.staff_id == g.user.id, tb_intro.project_id == project_id)) \
+        his_intros = session.query(tb_intro.id, tb_intro.workintro) \
+            .filter(and_(tb_intro.create_user == g.user.ID, tb_intro.projectid == project_id)) \
             .order_by(desc(tb_intro.create_date)).all()
-        return [{"id": i.id, "name": i.work_intro} for i in his_intros]  # 列表生成
+        return [{"id": i.id, "name": i.workintro} for i in his_intros]  # 列表生成
 
     @staticmethod
     def search_his_intros(query_like, project_id):
         # 查询用户的工作简介名称中含query_like的条目的id与work_intro
         tb_intro = TWorkIntroduction  # 名字太长 换个短点的名字
         query_like = "%{}%".format(query_like)
-        intros = session.query(tb_intro.id, tb_intro.work_intro) \
-            .filter(and_(tb_intro.work_intro.like(query_like), tb_intro.staff_id == g.user.id,
-                         tb_intro.project_id == project_id)) \
+        intros = session.query(tb_intro.id, tb_intro.workintro) \
+            .filter(and_(tb_intro.workintro.like(query_like), tb_intro.create_user == g.user.ID,
+                         tb_intro.projectid == project_id)) \
             .order_by(desc(tb_intro.create_date)).all()
         data = [{"id": i[0], "name": i[1]} for i in intros]  # 列表生成
         return data

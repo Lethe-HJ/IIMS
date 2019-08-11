@@ -18,10 +18,10 @@ def login():
     success, result["message"], result["status"] = verify_account(username, password)  # 验证账户
     if success:
         token = g.user.generate_auth_token()
-        g.user.save_token(g.user.id, token)  # 保存token到缓存
+        g.user.save_token(g.user.ID, token)  # 保存token到缓存
         result["data"][0] = {
             "token": token,
-            "user_id": g.user.id,
+            "user_id": g.user.ID,
             "username": username
         }
     return result

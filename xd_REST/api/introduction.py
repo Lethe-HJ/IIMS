@@ -80,18 +80,19 @@ def intros_add():
 
     args = {}
     try:
-        args["work_address"] = request.json['work_address']
-        args["work_property_id"] = request.json['work_property_id']
-        args["project_id"] = request.json['project_id']
+        args["workaddress"] = request.json['work_address']
+        args["workproperty"] = request.json['work_property_id']
+        args["projectid"] = request.json['project_id']
         check_empty_args(args)
     except KeyError as e:
         result["message"] = e.args[0] + "字段不能无或为空"
         result["status"] = "0"
         return result
-    args["work_intro"] = request.json.get('work_intro', None)  # work_intro字段可以为空
+    args["workintro"] = request.json.get('work_intro', None)  # work_intro字段可以为空
     args["remarks"] = request.json.get('remarks', None)  # remark字段可以为空
     success, result["message"] = TbIntros.add_intro(**args)
     result["status"] = 1 if success else 0
+    result["data"] = {}
     return result
 
 
@@ -107,16 +108,17 @@ def intros_edit():
     args = {}
     try:
         intro_id = request.json['intro_id']
-        args["work_address"] = request.json['work_address']
-        args["work_property_id"] = request.json['work_property_id']
-        args["project_id"] = request.json['project_id']
+        args["workaddress"] = request.json['work_address']
+        args["workproperty"] = request.json['work_property_id']
+        args["projectid"] = request.json['project_id']
         check_empty_args(args)
     except KeyError as e:
         result["message"] = e.args[0] + "字段不能无或为空"
         result["status"] = "0"
         return result
-    args["work_intro"] = request.json.get('work_intro', None)  # work_intro字段可以为空
+    args["workintro"] = request.json.get('work_intro', None)  # work_intro字段可以为空
     args["remarks"] = request.json.get('remarks', None)  # remark字段可以为空
     success, result["message"] = TbIntros.edit_intro(intro_id, **args)
     result["status"] = 1 if success else 0
+    result["data"] = {}
     return result

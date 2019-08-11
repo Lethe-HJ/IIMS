@@ -116,7 +116,7 @@
 #
 #     @staticmethod
 #     def himself_items(detail, query):
-#         # user_id = g.user.id
+#         # user_id = g.user.ID
 #         user_id = 1
 #         data_li = []
 #         if query:  # 如果有查询 则优先查询

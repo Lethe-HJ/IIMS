@@ -31,7 +31,7 @@
 #
 #     @staticmethod
 #     def himself_dailys(detail, query):
-#         # user_id = g.user.id
+#         # user_id = g.user.ID
 #         user_id = 1
 #         data_li = []
 #         if query:  # 如果有查询 则优先查询
@@ -66,7 +66,7 @@
 #         # 查询指定的工作日报条目
 #         this_daily = db.session.query(DDailyRecord).filter_by(id=daily_id).first()
 #         # 如果正在修改的日报不属于当前的用户 则提示
-#         # current_user = g.user.id
+#         # current_user = g.user.ID
 #         current_user = 1
 #         if this_daily.create_user_id is not current_user:
 #             return False, data, "(─.─||| 对不起 无法修改他人创建的日报"
@@ -105,7 +105,7 @@
 #         :param daily: DDailyRecord对象
 #         :return: dst.my_json 字典
 #         """
-#         # curren_user = g.user.id
+#         # curren_user = g.user.ID
 #         curren_user = 1
 #         # 查询当前用户可选的所有项目与工作项的搭配
 #         projects_and_items = db.session.query(PUserProject.project_id, PUserProject.project_item_id)\
@@ -134,7 +134,7 @@
 #         # 查找当前的日报条目
 #         this_daily = db.session.query(DDailyRecord).filter_by(id=daily.id).first()
 #         # 检查当前的日报是否是当前的用户创建的
-#         # current_user = g.user.id
+#         # current_user = g.user.ID
 #         current_user = 1
 #         if this_daily.create_user_id is not current_user:
 #             return False, "(─.─||| 对不起 无法修改他人创建的日报"

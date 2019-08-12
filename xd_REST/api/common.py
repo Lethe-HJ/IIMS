@@ -12,6 +12,7 @@ from xd_REST.logger import error_log
 my_json = deepcopy(dst.my_json)
 my_json["data"] = {}
 
+
 @error_log
 @app.route('/iims/common/projects/data', methods=["GET"])
 @auth.auth_required

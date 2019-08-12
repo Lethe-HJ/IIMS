@@ -23,7 +23,6 @@ class TWorkProperty(Base):
     create_user = Column(Integer)
 
     @staticmethod
-    @error_log
     def all_properties():
         """
         查询工作性质

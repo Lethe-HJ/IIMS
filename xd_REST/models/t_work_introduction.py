@@ -13,6 +13,7 @@ from flask import current_app, g
 # from xd_REST.logger import error_log
 from datetime import datetime
 
+
 class TWorkIntroduction(Base):
     __tablename__ = 'T_WorkIntroduction'
 

@@ -11,7 +11,7 @@ from sqlalchemy import CHAR, Column, DateTime, String, or_, desc
 from xd_REST import app, cache
 from . import Base, metadata
 from xd_REST import session
-from xd_REST.logger import error_log
+# from xd_REST.logger import error_log
 
 
 class TProjectSummary(Base):

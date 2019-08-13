@@ -1,4 +1,4 @@
-from xd_REST import app
+from xd_REST.logger import app
 from copy import deepcopy
 from xd_REST.libs.dst import my_json
 from xd_REST.libs.args import check_empty_args
@@ -7,12 +7,12 @@ from flask import request, current_app, g
 from xd_REST.models.t_work_introduction import TWorkIntroduction as TbIntros
 from xd_REST.models.t_project_summary import TProjectSummary as TbProject
 from xd_REST.models.t_work_property import TWorkProperty as TbProperty
-from xd_REST.logger import error_log
-
+# from xd_REST.logger import error_log
+import datetime
 result = deepcopy(my_json)
 
 
-@error_log
+
 @app.route('/iims/intros/data', methods=["GET"])
 @auth.auth_required
 def intros_data():
@@ -26,10 +26,11 @@ def intros_data():
     per_page = request.args.get('per_page', None)  # 分页预留
     result["data"] = TbIntros.himself_intros(detail)
     result["message"] = "数据获取成功"
+    result["status"] = 1
     return result
 
 
-@error_log
+
 @app.route('/iims/intros/query', methods=["GET"])
 @auth.auth_required
 def intros_query():
@@ -46,7 +47,7 @@ def intros_query():
     return result
 
 
-@error_log
+
 @app.route('/iims/intros/edit/data', methods=["GET"])
 @auth.auth_required
 def intros_edit_data():
@@ -69,7 +70,7 @@ def intros_edit_data():
     return result
 
 
-@error_log
+
 @app.route('/iims/intros/add', methods=["POST"])
 @auth.auth_required
 def intros_add():
@@ -96,7 +97,7 @@ def intros_add():
     return result
 
 
-@error_log
+
 @app.route('/iims/intros/edit', methods=["PUT"])
 @auth.auth_required
 def intros_edit():

@@ -1,4 +1,4 @@
-from xd_REST import app
+from xd_REST.logger import app
 from copy import deepcopy
 from xd_REST.libs import dst
 from xd_REST.libs import auth
@@ -8,12 +8,11 @@ from xd_REST.models.t_project_summary import TProjectSummary as TbProject
 from xd_REST.models.t_staff import TStaff
 from xd_REST.models.t_work_property import TWorkProperty as TbProperty
 from xd_REST.models.t_daily_record import TDailyRecord as TbDaily
-from xd_REST.logger import error_log
+# from xd_REST.logger import error_log
 my_json = deepcopy(dst.my_json)
 my_json["data"] = {}
 
 
-@error_log
 @app.route('/iims/common/projects/data', methods=["GET"])
 @auth.auth_required
 def common_projects_data():
@@ -27,7 +26,6 @@ def common_projects_data():
     return result
 
 
-@error_log
 @app.route('/iims/common/projects/query', methods=["GET"])
 @auth.auth_required
 def common_projects_query():
@@ -42,7 +40,6 @@ def common_projects_query():
     return result
 
 
-@error_log
 @app.route('/iims/common/intros/data', methods=["GET"])
 @auth.auth_required
 def common_intros_data():
@@ -62,7 +59,6 @@ def common_intros_data():
     return result
 
 
-@error_log
 @app.route('/iims/common/intros/query', methods=["GET"])
 @auth.auth_required
 def common_intros_query():
@@ -82,7 +78,6 @@ def common_intros_query():
     return result
 
 
-@error_log
 @app.route('/iims/common/property/data', methods=["GET"])
 @auth.auth_required
 def common_property_data():

@@ -1,4 +1,4 @@
-from xd_REST import app
+from xd_REST.logger import app
 from copy import deepcopy
 from xd_REST.libs.dst import my_json
 from xd_REST.libs import auth
@@ -8,10 +8,11 @@ from xd_REST.models.t_project_summary import TProjectSummary as TbProject
 from xd_REST.models.t_staff import TStaff
 from xd_REST.models.t_work_property import TWorkProperty as TbProperty
 from xd_REST.models.t_daily_record import TDailyRecord as TbDaily
-from xd_REST.logger import error_log
+# from xd_REST.logger import error_log
 import json
+import datetime
 
-@error_log
+
 @app.route('/iims/dailies/data', methods=["GET"])
 @auth.auth_required
 def dailies_data():
@@ -28,7 +29,6 @@ def dailies_data():
     return result
 
 
-@error_log
 @app.route('/iims/dailies/query', methods=["GET"])
 @auth.auth_required
 def dailies_query():
@@ -46,7 +46,7 @@ def dailies_query():
     return result
 
 
-@error_log
+
 @app.route('/iims/dailies/add', methods=["POST"])
 @auth.auth_required
 def dailies_add():
@@ -73,7 +73,7 @@ def dailies_add():
     return result
 
 
-@error_log
+
 @app.route('/iims/dailies/edit', methods=["PUT"])
 @auth.auth_required
 def dailies_edit():
@@ -101,7 +101,7 @@ def dailies_edit():
     return result
 
 
-@error_log
+
 @app.route('/iims/dailies/edit/data', methods=["GET"])
 @auth.auth_required
 def dailies_edit_data():

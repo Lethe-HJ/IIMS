@@ -1,21 +1,17 @@
 # coding: utf-8
-from sqlalchemy.orm import relationship
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Table, Text, text, Float, Date, Unicode, Numeric
-from sqlalchemy.dialects.mysql.enumerated import ENUM
-from flask import current_app, g
-from sqlalchemy.dialects.mysql import BIGINT, JSON, ENUM, INTEGER, TIMESTAMP, TINYINT, VARCHAR
-from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
-from xd_REST import db
-from xd_REST.libs.aes import encrypt_oracle, decrypt_oracle
-from sqlalchemy import CHAR, Column, DateTime, String, or_, desc
-from xd_REST import app, cache
-from . import Base, metadata
+
+from sqlalchemy import Integer, Date, Unicode, Numeric, exc, DateTime
+
+from flask import g
+
+from sqlalchemy import Column, DateTime, String, desc
+from . import Base
 from .t_work_introduction import TWorkIntroduction as TbIntro
 from .t_project_summary import TProjectSummary as TbProject
 from .t_staff import TStaff
 from xd_REST import session
-from xd_REST.logger import error_log
-
+# from xd_REST.logger import error_log
+from datetime import datetime
 
 class TDailyRecord(Base):
     __tablename__ = 'T_DailyRecord'
@@ -32,9 +28,9 @@ class TDailyRecord(Base):
     DescripNumber = Column(Integer)
     ProjectID = Column(Unicode(50))
     isdelete = Column(Integer)
-    createdate = Column(DateTime)
+    createdate = Column(DateTime, default=datetime.now())
     createuser = Column(Integer)
-    updatedate = Column(DateTime)
+    updatedate = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
     updateuser = Column(Integer)
     workintroId = Column(Integer)
     userid = Column(Integer)
@@ -90,8 +86,12 @@ class TDailyRecord(Base):
         daily = TDailyRecord(**kwargs)
         daily.StaffName = session.query(TStaff.StaffName).filter_by(ID=g.user.ID).first()[0]
         daily.ProjectName = session.query(TbProject.ProjectName).filter_by(ID=kwargs["ProjectID"]).first()[0]
-        session.add(daily)
-        session.commit()
+        try:
+            session.add(daily)
+            session.commit()
+        except exc.SQLAlchemyError as e:
+            session.rollback()
+            return False, "工作日报数据新增失败"
 
     @staticmethod
     def edit_daily(daily_id, **kwargs):
@@ -99,9 +99,13 @@ class TDailyRecord(Base):
         if the_daily.first().userid != g.user.ID:
             return False, "不能修改他人的工作简介"
         else:
-            the_daily.update(kwargs)
-            session.commit()
-            return True, "数据修改成功"
+            try:
+                the_daily.update(kwargs)
+                session.commit()
+            except exc.SQLAlchemyError as e:
+                session.rollback()
+                return False, "工作日报数据修改失败"
+            return True, "工作日报数据修改成功"
 
     @staticmethod
     def search_bar_entries(query):

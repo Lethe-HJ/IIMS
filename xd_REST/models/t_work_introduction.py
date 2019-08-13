@@ -10,8 +10,8 @@ from .t_work_property import TWorkProperty
 from .t_staff import TStaff
 from xd_REST import session
 from flask import current_app, g
-from xd_REST.logger import error_log
-
+# from xd_REST.logger import error_log
+from datetime import datetime
 
 class TWorkIntroduction(Base):
     __tablename__ = 'T_WorkIntroduction'
@@ -22,9 +22,9 @@ class TWorkIntroduction(Base):
     workproperty = Column(Integer)
     projectid = Column(Unicode(50))
     workintro = Column(Unicode(100))
-    create_date = Column(DateTime)
+    create_date = Column(DateTime, default=datetime.now())
     create_user = Column(Integer)
-    update_date = Column(DateTime)
+    update_date = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
     remarks = Column(Unicode(100))
     userid = Column(Integer)
     username = Column(Unicode(50))
@@ -143,8 +143,13 @@ class TWorkIntroduction(Base):
         if the_intro.first().userid != g.user.ID:
             return False, "不能修改他人创建的工作简介"
         else:
-            the_intro.update(kwargs)
-            session.commit()
+            try:
+                the_intro.update(kwargs)
+                session.commit()
+            except exc.SQLAlchemyError as e:
+                session.rollback()
+                raise e
+                # return False, "工作简介数据修改失败"
             return True, "工作简介修改成功"
 
     @staticmethod
@@ -164,8 +169,10 @@ class TWorkIntroduction(Base):
         # 查询这个工作简介对应的工作性质
         the_property = session.query(TWorkProperty.workpropertyname, TWorkProperty.id) \
             .filter_by(id=intro.workproperty).first()
-        data["work_property"] = the_property.workpropertyname
-        data["work_property_id"] = the_property.id
+        if the_property is None:
+            data["work_property"], data["work_property_id"] = "无", 0
+        else:
+            data["work_property"], data["work_property_id"] = the_property.workpropertyname, the_property.id
         data["remarks"] = intro.remarks  # 备注
         return True, "数据查询成功", data
 

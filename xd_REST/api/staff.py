@@ -1,11 +1,12 @@
-from xd_REST import app
+from xd_REST.logger import app
 from copy import deepcopy
 from xd_REST.libs.dst import my_json
 from flask import request, current_app, g
 from xd_REST.libs.auth import verify_account
-from xd_REST.logger import error_log
+# from xd_REST.logger import error_log
 
-@error_log
+
+
 @app.route('/iims/staff/login', methods=["POST"])
 def login():
     """

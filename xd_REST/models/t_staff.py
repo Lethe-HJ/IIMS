@@ -11,7 +11,7 @@ from sqlalchemy import CHAR, Column, DateTime, String, or_
 from xd_REST import app, cache
 from . import Base, metadata
 from .t_business_unit import TBusinessUnit
-from xd_REST.logger import error_log
+# from xd_REST.logger import error_log
 
 
 class TStaff(Base):
@@ -55,7 +55,18 @@ class TStaff(Base):
         return decrypt_oracle(self.device_password, current_app.config.get("AES_KEY", "12345678"))
 
     def verify_password(self, password):
-        return self.LoginPassword == password
+        return self.LoginPassword == self.delete_zero(password)
+
+    def delete_zero(self, md5_str):
+        new_str = ""
+        for i in range(0, len(md5_str), 2):
+            num_s = md5_str[i:i + 2]
+            if num_s[0] == "0" and int(num_s[1], 16) > 9:
+
+                new_str += num_s[1]
+            else:
+                new_str += num_s
+        return new_str
 
     def generate_auth_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
@@ -65,6 +76,8 @@ class TStaff(Base):
         # query.update({"token": token})  # 使用之前的Basequery 避免重复查询
         # db.session.commit()
         cache.set(id, token, timeout=3600)
+
+
 
     @staticmethod
     def verify_parse_token(token):

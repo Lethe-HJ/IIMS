@@ -47,7 +47,7 @@ def validate_token(token):
     # 验证token是否存在缓存中
     user_dict = cache.get(data['id'])
     if not user_dict:
-        app.logger.error("用户登录token[%s]缓存中不存在"% token)
+        app.logger.error("用户登录token[%s]缓存中不存在" % token)
         return False
 
     user = db.session.query(TStaff).filter_by(ID=data['id']).first()

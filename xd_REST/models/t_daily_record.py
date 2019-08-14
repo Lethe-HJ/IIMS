@@ -47,7 +47,7 @@ class TDailyRecord(Base):
         tb_daily = TDailyRecord  # 名字太长 换个短点的名字
         # 查询当前用户的所有工作日报 按创建时间排序
         his_dailies = session.query(tb_daily).filter_by(userid=current_user) \
-            .order_by(desc(tb_daily.createdate)).all()
+            .order_by(desc(tb_daily.WorkDate)).all()
         return tb_daily.pack_daily_data(his_dailies, detail)
 
     @staticmethod

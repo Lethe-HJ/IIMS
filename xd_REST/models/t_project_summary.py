@@ -51,7 +51,7 @@ class TProjectSummary(Base):
             projects = projects.all()  # 获取所有的项目数据
         else:
             projects = projects.limit(items).all()  # 获取最新的items条项目数据
-        return [{"id": i[0], "name": i[1]} for i in projects]  # 列表生成
+        return [(i[0], i[1]) for i in projects]  # 列表生成
         # 结构[{},] 示例 [{"id": '005d5b45-4e34-4eb9-b68b-30e0199b6aa5', "name": '宝鸡二维码改造'},]
 
     @staticmethod
@@ -69,3 +69,5 @@ class TProjectSummary(Base):
             .order_by(desc(tb_project.create_date)).all()
         data = [{"id": i[0], "name": i[1]} for i in projects]  # 列表生成
         return True, "数据查询成功", data
+
+

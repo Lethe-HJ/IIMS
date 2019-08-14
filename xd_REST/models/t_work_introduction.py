@@ -199,6 +199,18 @@ class TWorkIntroduction(Base):
         return data
         # 结构[{},] 示例 [{"id": 9676, "name": '美签项目 自动填表功能技术验证'},]
 
+    @staticmethod
+    def history_projects_in_intros():
+        tb_intro = TWorkIntroduction
+        # 查询该用户的工作简介出现的项目id集合
+        project_ids = session.query(tb_intro.projectid).filter(tb_intro.create_user == g.user.ID).distinct().all()
+        # 修改数据结构 [(id,),] -> [id,]
+        project_ids = [ids[0] for ids in project_ids]
+        # 查询前面id集合对应的项目Id与项目名组成的集合 按时间降序排列
+        projects = session.query(TbProject.ID, TbProject.ProjectName).filter(TbProject.ID.in_(project_ids))\
+            .order_by(desc(TbProject.create_date)).distinct().all()
+        return projects
+
 # @1处的查询sql语句
 # SELECT id, work_intro, project_id, work_address, work_property_id
 # FROM t_work_introduction

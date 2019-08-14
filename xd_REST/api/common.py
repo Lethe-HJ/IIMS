@@ -22,7 +22,11 @@ def common_projects_data():
     """
     result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
     limit = request.args.get("limit", None)
-    result["data"]["projects"] = TbProject.all_projects(limit)  # 获取最近的limit个项目 以 [{"id":***, "name":***}]形式
+    projects = []
+    projects.extend(TbIntros.history_projects_in_intros())
+    projects.extend(TbProject.all_projects(limit))  # 获取最近的limit个项目 以 [{"id":***, "name":***}]形式
+    projects = sorted(set(projects), key=projects.index)  # 保留原顺序的去重
+    result["data"]["projects"] = [{"id": i[0], "name": i[1]} for i in projects]
     return result
 
 

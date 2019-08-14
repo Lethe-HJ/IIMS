@@ -12,7 +12,6 @@ import datetime
 result = deepcopy(my_json)
 
 
-
 @app.route('/iims/intros/data', methods=["GET"])
 @auth.auth_required
 def intros_data():
@@ -30,7 +29,6 @@ def intros_data():
     return result
 
 
-
 @app.route('/iims/intros/query', methods=["GET"])
 @auth.auth_required
 def intros_query():
@@ -45,7 +43,6 @@ def intros_query():
     success, result["message"], result["data"] = TbIntros.query_daily(detail, query)
     result["status"] = 1 if success else 0
     return result
-
 
 
 @app.route('/iims/intros/edit/data', methods=["GET"])
@@ -68,7 +65,6 @@ def intros_edit_data():
     success, result["message"], result["data"] = TbIntros.get_the_intro(args["intro_id"])
     result["status"] = 1 if success else 0
     return result
-
 
 
 @app.route('/iims/intros/add', methods=["POST"])

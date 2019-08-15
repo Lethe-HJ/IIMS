@@ -93,7 +93,6 @@ def intros_add():
     return result
 
 
-
 @app.route('/iims/intros/edit', methods=["PUT"])
 @auth.auth_required
 def intros_edit():

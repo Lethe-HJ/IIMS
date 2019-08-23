@@ -9,11 +9,12 @@ from xd_REST import db, app
 from xd_REST.models.t_staff import TStaff
 from xd_REST import app, cache
 from flask import current_app, g
+from sqlalchemy import and_
 auth = HTTPBasicAuth()
 
 
 def verify_account(username, password):
-    user = db.session.query(TStaff).filter(TStaff.StaffName == username)
+    user = db.session.query(TStaff).filter(and_(TStaff.StaffName == username, TStaff.isdelete == 0))
     g.user_query = user  # 保存这个查询
     user = user.first()
     if not user:

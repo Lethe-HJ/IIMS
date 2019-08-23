@@ -12,6 +12,7 @@ import datetime
 result = deepcopy(my_json)
 
 
+
 @app.route('/iims/intros/data', methods=["GET"])
 @auth.auth_required
 def intros_data():
@@ -29,6 +30,7 @@ def intros_data():
     return result
 
 
+
 @app.route('/iims/intros/query', methods=["GET"])
 @auth.auth_required
 def intros_query():
@@ -43,6 +45,7 @@ def intros_query():
     success, result["message"], result["data"] = TbIntros.query_daily(detail, query)
     result["status"] = 1 if success else 0
     return result
+
 
 
 @app.route('/iims/intros/edit/data', methods=["GET"])
@@ -67,6 +70,7 @@ def intros_edit_data():
     return result
 
 
+
 @app.route('/iims/intros/add', methods=["POST"])
 @auth.auth_required
 def intros_add():
@@ -74,23 +78,24 @@ def intros_add():
     工作简介新增提交接口i3
     :return: dst.my_json字典
     """
-
     args = {}
     try:
         args["workaddress"] = request.json['work_address']
         args["workproperty"] = request.json['work_property_id']
         args["projectid"] = request.json['project_id']
+        args["workintro"] = request.json['work_intro']
         check_empty_args(args)
     except KeyError as e:
         result["message"] = e.args[0] + "字段不能无或为空"
         result["status"] = "0"
         return result
-    args["workintro"] = request.json.get('work_intro', None)  # work_intro字段可以为空
-    args["remarks"] = request.json.get('remarks', None)  # remark字段可以为空
+
+    args["remarks"] = request.json.get('remarks', "")  # remark字段可以为空
     success, result["message"] = TbIntros.add_intro(**args)
     result["status"] = 1 if success else 0
     result["data"] = {}
     return result
+
 
 
 @app.route('/iims/intros/edit', methods=["PUT"])

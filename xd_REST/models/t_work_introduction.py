@@ -12,6 +12,7 @@ from xd_REST import session
 from flask import current_app, g
 # from xd_REST.logger import error_log
 from datetime import datetime
+from sqlalchemy.sql import func
 
 
 class TWorkIntroduction(Base):
@@ -125,10 +126,12 @@ class TWorkIntroduction(Base):
 
     @staticmethod
     def add_intro(**intro):
+        Intro = TWorkIntroduction
         the_intro = TWorkIntroduction(**intro)
         the_intro.userid = g.user.ID
         the_intro.create_user = g.user.ID
         the_intro.username = session.query(TStaff.StaffName).filter_by(ID=g.user.ID).first()[0]
+        the_intro.snumber = session.query(func.max(Intro.snumber)).first()[0] + 1
         try:
             session.add(the_intro)
             session.commit()

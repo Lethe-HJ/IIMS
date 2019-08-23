@@ -1,0 +1,10 @@
+<service>
+  <id>ServerStart</id>
+  <name>ServerStart</name>
+  <description>ServerStart</description>
+  <env name="path" value="E:\hujing\xd-iims-1.0"/>
+  <executable>E:/hujing/xd-iims-1.0/ServerStarter(1).exe</executable>
+  <arguments>-p E:/hujing/xd-iims-1.0</arguments>
+  <logpath>E:/hujing/xd-iims-1.0/logs/</logpath>
+  <logmode>roll</logmode>
+</service>

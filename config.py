@@ -13,10 +13,10 @@ from urllib.parse import quote as urlquote
 # 参考: https://blog.csdn.net/ennismar/article/details/59518653
 
 
-# SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:hujin666..@127.0.0.1:3306/workdailyformal?charset=utf8'
-SQLALCHEMY_DATABASE_URI = 'mssql+pymssql://sa:wVYV7denNPOJntZ@47.106.83.135:1433/workdailyformal?charset=utf8'
+
+SQLALCHEMY_DATABASE_URI = 'mssql+pymssql://hujing:wVYV7denNPOJntZ@127.0.0.1:1433/workdailyformal?charset=utf8'
 # mssql+pymssql://Login:Password@Servername/DBname
-PORT = 5555
+PORT = 47002
 # redis信息
 REDIS_CONF = {
     "host": 'localhost',
@@ -26,7 +26,7 @@ REDIS_CONF = {
 SQLALCHEMY_ECHO = False
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_POOL_SIZE = 5
-
+SQLALCHEMY_POOL_RECYCLE=300
 
 # TOKEN鉴权使用的安全因子
 SECRET_KEY = 'lazy dog'

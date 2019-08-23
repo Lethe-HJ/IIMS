@@ -22,9 +22,11 @@ def dailies_data():
     """
     result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
     detail = bool(request.args.get('detail', None))  # 前端传过来的的true与false是字符串 需转为bool
+    start = request.args.get('start', None)
+    end = request.args.get('end', None)
     page = request.args.get('page', None)  # 分页预留
     per_page = request.args.get('per_page', None)  # 分页预留
-    result["data"] = TbDaily.his_all_daily(detail)
+    result["data"] = TbDaily.his_all_daily(detail, start, end)
     result["message"] = "工作日报数据获取成功"
     return result
 
@@ -68,10 +70,9 @@ def dailies_add():
         return result
     work_matters = request.json.get('work_matters', None)  # remark字段可以为空
     args['WorkMatters'] = work_matters
-    TbDaily.add_daily(**args)
-    result["message"] = "添加工作日报成功"
+    success, result["message"] = TbDaily.add_daily(**args)
+    result["status"] = 1 if success else 0
     return result
-
 
 
 @app.route('/iims/dailies/edit', methods=["PUT"])
@@ -95,6 +96,7 @@ def dailies_edit():
         result["status"] = "0"
         return result
     work_matters = request.json.get('work_matters', None)  # remark字段可以为空
+    # args['WorkMatters'] = work_matters.encode('latin-1').decode('gbk')
     args['WorkMatters'] = work_matters
     success, result["message"] = TbDaily.edit_daily(daily_id, **args)
     result["status"] = 1 if success else 0

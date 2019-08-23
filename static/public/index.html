@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title>工作日报系统</title>
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but my-project doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+    <script>
+      /* 禁止ios缩放 */
+      var lastTouchEnd = 0;
+      document.documentElement.addEventListener('touchstart', function (event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+        }
+      }, false);
+      document.documentElement.addEventListener('touchend', function (event) {
+        var now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+      document.addEventListener('gesturestart', function(event) {
+        event.preventDefault();
+      });
+
+      /* 隐藏浏览器地址栏 */
+      window.onload = function(){
+        if (document.documentElement.scrollHeight <= document.documentElement.clientHeight) {
+          bodyTag = document.getElementsByTagName('body')[0];
+          bodyTag.style.height = document.documentElement.clientWidth / screen.width * screen.height + 'px';
+        }
+        setTimeout(function() {
+          window.scrollTo(0, 1);
+        }, 0);
+      };
+    </script>
+  </body>
+</html>

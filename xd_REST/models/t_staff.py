@@ -55,6 +55,9 @@ class TStaff(Base):
         return decrypt_oracle(self.device_password, current_app.config.get("AES_KEY", "12345678"))
 
     def verify_password(self, password):
+        print(self.LoginPassword)
+        print("-------------")
+        print(self.delete_zero(password))
         return self.LoginPassword == self.delete_zero(password)
 
     def delete_zero(self, md5_str):

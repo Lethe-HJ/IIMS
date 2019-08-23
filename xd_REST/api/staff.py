@@ -16,6 +16,7 @@ def login():
     result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
     username = request.json.get('username', None)
     password = request.json.get('password', None)
+    print(username, password)
     success, result["message"], result["status"] = verify_account(username, password)  # 验证账户
     if success:
         token = g.user.generate_auth_token()

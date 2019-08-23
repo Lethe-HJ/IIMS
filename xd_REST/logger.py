@@ -67,6 +67,8 @@ def errorhandler_404(error):
 
 @app.errorhandler(Exception)
 def framework_error(error):
+    if not os.path.exists(error_logdir):
+        os.makedirs(error_logdir)
     app.logger.error(str(error))
     return str(error), status.HTTP_500_INTERNAL_SERVER_ERROR
 

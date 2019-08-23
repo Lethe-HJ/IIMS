@@ -4,7 +4,7 @@ from sqlalchemy import Integer, Date, Unicode, Numeric, exc, DateTime
 
 from flask import g
 
-from sqlalchemy import Column, DateTime, String, desc
+from sqlalchemy import Column, DateTime, String, desc, and_
 from . import Base
 from .t_work_introduction import TWorkIntroduction as TbIntro
 from .t_project_summary import TProjectSummary as TbProject
@@ -36,18 +36,25 @@ class TDailyRecord(Base):
     userid = Column(Integer)
 
     @staticmethod
-    def his_all_daily(detail):
+    def his_all_daily(detail, start, end):
         """
         获取当前用户的工作日报
         :param detail: 详细与否
+        :param start: 开始时间
+        :param end: 结束时间
         :return: data字典
         """
         current_user = g.user.ID
         # current_user = 199
         tb_daily = TDailyRecord  # 名字太长 换个短点的名字
         # 查询当前用户的所有工作日报 按创建时间排序
-        his_dailies = session.query(tb_daily).filter_by(userid=current_user) \
-            .order_by(desc(tb_daily.WorkDate)).all()
+        if start and end:
+            start = datetime.strptime(start, '%Y-%m-%d')  # 将日期字符串格式化成日期对象
+            end = datetime.strptime(end, '%Y-%m-%d')
+            condition = and_(TDailyRecord.userid == current_user, TDailyRecord.WorkDate.between(start, end))
+            his_dailies = session.query(tb_daily).filter(condition).order_by(desc(tb_daily.WorkDate)).all()
+        else:
+            his_dailies = session.query(tb_daily).filter_by(userid=current_user).order_by(desc(tb_daily.WorkDate)).all()
         return tb_daily.pack_daily_data(his_dailies, detail)
 
     @staticmethod
@@ -74,8 +81,11 @@ class TDailyRecord(Base):
             # 项目名称
             data["project_name"] = session.query(TbProject.ProjectName).filter_by(ID=daily.ProjectID).first()[0]
             data["work_date"] = str(daily.WorkDate)  # 工作日期
+            data["Weeks"] = daily.Weeks
+            data["DayInWeek"] = daily.DayInWeek
             if detail:  # 详细查询要多出工时,具体事项字段
                 data["work_hours"] = str(daily.WorkHours)  # 工时
+                # data["work_matters"] = daily.WorkMatters.encode('latin-1').decode('gbk')  # 具体事项
                 data["work_matters"] = daily.WorkMatters  # 具体事项
             data_li.append(data)  # 将data字典添加到data_li数组尾部
         return data_li
@@ -83,12 +93,26 @@ class TDailyRecord(Base):
     @staticmethod
     def add_daily(**kwargs):
         kwargs["userid"] = g.user.ID
+        kwargs["createuser"] = g.user.ID
+        kwargs["updateuser"] = g.user.ID
+        kwargs["isdelete"] = 0
+        condition = and_(TDailyRecord.WorkDate == kwargs["WorkDate"],
+                         TDailyRecord.userid == kwargs["userid"],
+                         TDailyRecord.WorkMatters == kwargs["WorkMatters"]
+                         )
+        res = session.query(TDailyRecord).filter(condition).first()
+        if res is not None:
+            return False, "您今天已经写过一模一样内容的的日报了"
         daily = TDailyRecord(**kwargs)
+        date_p = datetime.strptime(kwargs["WorkDate"], '%Y-%m-%d').date()
+        years, daily.Weeks, daily.DayInWeek = date_p.isocalendar()  # 获取周数和星期几
+        daily.JobDescription = session.query(TbIntro.workintro).filter_by(id=daily.workintroId).first()[0]
         daily.StaffName = session.query(TStaff.StaffName).filter_by(ID=g.user.ID).first()[0]
         daily.ProjectName = session.query(TbProject.ProjectName).filter_by(ID=kwargs["ProjectID"]).first()[0]
         try:
             session.add(daily)
             session.commit()
+            return True, "日报添加成功"
         except exc.SQLAlchemyError as e:
             session.rollback()
             return False, "工作日报数据新增失败"
@@ -96,6 +120,10 @@ class TDailyRecord(Base):
     @staticmethod
     def edit_daily(daily_id, **kwargs):
         the_daily = session.query(TDailyRecord).filter_by(ID=daily_id)
+        date_p = datetime.strptime(kwargs["WorkDate"], '%Y-%m-%d').date()
+        kwargs["JobDescription"] = session.query(TbIntro.workintro).filter_by(id=kwargs["workintroId"]).first()[0]
+        kwargs["updateuser"] = g.user.ID
+        years, kwargs["Weeks"], kwargs["DayInWeek"] = date_p.isocalendar()  # 获取周数和星期几
         if the_daily.first().userid != g.user.ID:
             return False, "不能修改他人的工作简介"
         else:

@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=0"><meta name=apple-touch-fullscreen content=yes><meta name=apple-mobile-web-app-capable content=yes><link rel=icon href=/favicon.ico><title>工作日报系统</title><link href=/css/about.8d0f13c9.css rel=prefetch><link href=/css/chunk-316b3e1c.bb14ff35.css rel=prefetch><link href=/css/chunk-3811db56.0392a332.css rel=prefetch><link href=/css/chunk-5eb2022c.46327067.css rel=prefetch><link href=/css/chunk-7a4b9382.58e4cc09.css rel=prefetch><link href=/css/chunk-a17d525a.070304a1.css rel=prefetch><link href=/css/chunk-cc6536e6.ca9f6234.css rel=prefetch><link href=/css/login.e6175477.css rel=prefetch><link href=/js/about.4abcb973.js rel=prefetch><link href=/js/chunk-316b3e1c.ed688680.js rel=prefetch><link href=/js/chunk-3811db56.75a523ba.js rel=prefetch><link href=/js/chunk-5eb2022c.c290dc18.js rel=prefetch><link href=/js/chunk-7a4b9382.8659cbe8.js rel=prefetch><link href=/js/chunk-a17d525a.5845f936.js rel=prefetch><link href=/js/chunk-cc6536e6.d8b8bf3e.js rel=prefetch><link href=/js/login.b035ba2e.js rel=prefetch><link href=/css/app.faf89cd1.css rel=preload as=style><link href=/css/chunk-vendors.20112183.css rel=preload as=style><link href=/js/app.329179bd.js rel=preload as=script><link href=/js/chunk-vendors.9ab36646.js rel=preload as=script><link href=/css/chunk-vendors.20112183.css rel=stylesheet><link href=/css/app.faf89cd1.css rel=stylesheet></head><body><noscript><strong>We're sorry but my-project doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id=app></div><script>/* 禁止ios缩放 */
+      var lastTouchEnd = 0;
+      document.documentElement.addEventListener('touchstart', function (event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+        }
+      }, false);
+      document.documentElement.addEventListener('touchend', function (event) {
+        var now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+      document.addEventListener('gesturestart', function(event) {
+        event.preventDefault();
+      });
+
+      /* 隐藏浏览器地址栏 */
+      window.onload = function(){
+        if (document.documentElement.scrollHeight <= document.documentElement.clientHeight) {
+          bodyTag = document.getElementsByTagName('body')[0];
+          bodyTag.style.height = document.documentElement.clientWidth / screen.width * screen.height + 'px';
+        }
+        setTimeout(function() {
+          window.scrollTo(0, 1);
+        }, 0);
+      };</script><script src=/js/chunk-vendors.9ab36646.js></script><script src=/js/app.329179bd.js></script></body></html>

@@ -8,10 +8,13 @@ from sqlalchemy import Column, DateTime, String, desc, and_
 from . import Base
 from .t_work_introduction import TWorkIntroduction as TbIntro
 from .t_project_summary import TProjectSummary as TbProject
+from .t_companyframe import t_T_CompanyFrame as CompanyFrame
 from .t_staff import TStaff
+from .t_concern_staff import TConcernStaff
 from xd_REST import session
 # from xd_REST.logger import error_log
 from datetime import datetime
+
 
 class TDailyRecord(Base):
     __tablename__ = 'T_DailyRecord'
@@ -36,26 +39,29 @@ class TDailyRecord(Base):
     userid = Column(Integer)
 
     @staticmethod
-    def his_all_daily(detail, start, end):
+    def his_all_daily(**kwargs):
         """
         获取当前用户的工作日报
-        :param detail: 详细与否
-        :param start: 开始时间
-        :param end: 结束时间
         :return: data字典
         """
+        start = kwargs["start"]  # 必选
+        end = kwargs["end"]  # 必选
+        detail = kwargs["detail"]  # 必选
+        pattern = kwargs["pattern"]  # 必选
+        staff_id = kwargs["staff_id"]
         current_user = g.user.ID
-        # current_user = 199
         tb_daily = TDailyRecord  # 名字太长 换个短点的名字
-        # 查询当前用户的所有工作日报 按创建时间排序
-        if start and end:
+        dailies = session.query(tb_daily.ID, tb_daily.WorkDate, tb_daily.Weeks, tb_daily.WorkHours,
+                                tb_daily.WorkMatters, tb_daily.StaffName, tb_daily.ProjectName,
+                                tb_daily.workintroId, tb_daily.userid, tb_daily.ProjectID,
+                                tb_daily.StaffName)
+        user_id = staff_id if staff_id else current_user  # 如果有staff_id 则为查看他人日报 否则则为查看自己的工作日报
+        dailies = dailies.filter(TDailyRecord.userid == user_id)
+        if start and end:  # 筛选时间
             start = datetime.strptime(start, '%Y-%m-%d')  # 将日期字符串格式化成日期对象
             end = datetime.strptime(end, '%Y-%m-%d')
-            condition = and_(TDailyRecord.userid == current_user, TDailyRecord.WorkDate.between(start, end))
-            his_dailies = session.query(tb_daily).filter(condition).order_by(desc(tb_daily.WorkDate)).all()
-        else:
-            his_dailies = session.query(tb_daily).filter_by(userid=current_user).order_by(desc(tb_daily.WorkDate)).all()
-        return tb_daily.pack_daily_data(his_dailies, detail)
+            dailies = dailies.filter(TDailyRecord.WorkDate.between(start, end))
+        return tb_daily.pack_daily_data(dailies, detail)
 
     @staticmethod
     def query_daily(detail, query=None):
@@ -73,7 +79,7 @@ class TDailyRecord(Base):
     def pack_daily_data(dailies, detail=None):
         data_li = []
         for daily in dailies:  # 遍历当前用户的所有工作简介条目
-            data = {}  # 每次循环需要重新新建data字典
+            data = dict()  # 每次循环需要重新新建data字典
             data["daily_id"] = daily.ID  # 工作日报id
             # 工作简介名称
             work_intro = session.query(TbIntro.workintro).filter_by(id=daily.workintroId).first()
@@ -82,10 +88,9 @@ class TDailyRecord(Base):
             data["project_name"] = session.query(TbProject.ProjectName).filter_by(ID=daily.ProjectID).first()[0]
             data["work_date"] = str(daily.WorkDate)  # 工作日期
             data["Weeks"] = daily.Weeks
-            data["DayInWeek"] = daily.DayInWeek
+            data["StaffName"] = daily.StaffName
             if detail:  # 详细查询要多出工时,具体事项字段
                 data["work_hours"] = str(daily.WorkHours)  # 工时
-                # data["work_matters"] = daily.WorkMatters.encode('latin-1').decode('gbk')  # 具体事项
                 data["work_matters"] = daily.WorkMatters  # 具体事项
             data_li.append(data)  # 将data字典添加到data_li数组尾部
         return data_li

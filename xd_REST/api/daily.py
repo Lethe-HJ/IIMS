@@ -9,6 +9,7 @@ from xd_REST.models.t_staff import TStaff
 from xd_REST.models.t_work_property import TWorkProperty as TbProperty
 from xd_REST.models.t_daily_record import TDailyRecord as TbDaily
 # from xd_REST.logger import error_log
+from xd_REST.libs.tils import str_boolean
 import json
 import datetime
 
@@ -21,12 +22,17 @@ def dailies_data():
     :return: dst.my_json字典
     """
     result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
-    detail = bool(request.args.get('detail', None))  # 前端传过来的的true与false是字符串 需转为bool
-    start = request.args.get('start', None)
-    end = request.args.get('end', None)
+    args = dict()
+    args["detail"] = str_boolean(request.args.get('detail', None))  # 前端传过来的的true与false是字符串 需转为bool
+    args["start"] = request.args.get('start', None)
+    args["end"] = request.args.get('end', None)
+    args["staff_id"] = request.args.get('staff_id', None)
+    args["pattern"] = str_boolean(request.args.get('pattern', False))  # 前端传过来的的true与false是字符串 需转为bool
+
+
     page = request.args.get('page', None)  # 分页预留
     per_page = request.args.get('per_page', None)  # 分页预留
-    result["data"] = TbDaily.his_all_daily(detail, start, end)
+    result["data"] = TbDaily.his_all_daily(**args)
     result["message"] = "工作日报数据获取成功"
     return result
 
@@ -46,7 +52,6 @@ def dailies_query():
     result["data"] = TbDaily.query_daily(detail, query)
     result["message"] = "工作日报数据获取成功"
     return result
-
 
 
 @app.route('/iims/dailies/add', methods=["POST"])

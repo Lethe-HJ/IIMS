@@ -6,7 +6,6 @@ from xd_REST.libs.auth import verify_account
 # from xd_REST.logger import error_log
 
 
-
 @app.route('/iims/staff/login', methods=["POST"])
 def login():
     """

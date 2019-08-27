@@ -59,18 +59,24 @@ def errorhandler_400(error):
     return error.description, status.HTTP_400_BAD_REQUEST
 
 
+@app.errorhandler(401)
+def errorhandler_401(error):
+    app.logger.info(error.description.encode("utf-8"))
+    return error.description, status.HTTP_401_UNAUTHORIZED
+
+
 @app.errorhandler(404)
 def errorhandler_404(error):
     app.logger.info(error.description.encode("utf-8"))
     return error.description, status.HTTP_404_NOT_FOUND
 
-
-@app.errorhandler(Exception)
-def framework_error(error):
-    if not os.path.exists(error_logdir):
-        os.makedirs(error_logdir)
-    app.logger.error(str(error))
-    return str(error), status.HTTP_500_INTERNAL_SERVER_ERROR
+#
+# @app.errorhandler(Exception)
+# def framework_error(error):
+#     if not os.path.exists(error_logdir):
+#         os.makedirs(error_logdir)
+#     app.logger.error(str(error))
+#     return str(error), status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 # def create_logger():

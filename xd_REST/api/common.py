@@ -7,8 +7,11 @@ from xd_REST.models.t_work_introduction import TWorkIntroduction as TbIntros
 from xd_REST.models.t_project_summary import TProjectSummary as TbProject
 from xd_REST.models.t_staff import TStaff
 from xd_REST.models.t_work_property import TWorkProperty as TbProperty
+from xd_REST.models.t_companyframe import t_T_CompanyFrame as TFrame, FrameTree
 from xd_REST.models.t_daily_record import TDailyRecord as TbDaily
+from xd_REST.models.t_concern_staff import TConcernStaff
 # from xd_REST.logger import error_log
+
 my_json = deepcopy(dst.my_json)
 my_json["data"] = {}
 
@@ -91,4 +94,83 @@ def common_property_data():
     """
     result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
     result["data"]["property"] = TbProperty.all_properties()
+    return result
+
+
+@app.route('/iims/common/classification', methods=["GET"])
+@auth.auth_required
+def common_classification():
+    """
+    分类信息接口
+    :return:
+    """
+    pattern = request.args.get("pattern", "group")
+    result = deepcopy(my_json)
+    frame_tree = FrameTree(pattern)
+    frame_tree = frame_tree.build_tree()
+    result["status"] = 1
+    result["message"] = "数据返回成功"
+    result["data"] = frame_tree
+    return result
+
+
+@app.route('/iims/common/concern', methods=["GET"])
+@auth.auth_required
+def common_concern():
+    """
+    我的关注查询接口
+    :return:
+    """
+    result = deepcopy(my_json)
+    result["status"] = 1
+    result["message"] = "数据返回成功"
+    result["data"] = TConcernStaff.get_his_concern()
+    return result
+
+
+@app.route('/iims/common/concern', methods=["PUT"])
+@auth.auth_required
+def common_concern_edit():
+    """
+    我的关注编辑提交接口
+    :return:
+    """
+    result = deepcopy(my_json)
+    try:
+        concern = request.json['concern']
+    except KeyError as e:
+        result["message"] = e.args[0] + "字段不能为空"
+        result["status"] = "0"
+        return result
+    TConcernStaff.update_concern(concern)
+    result["status"] = 1
+    result["message"] = "数据返回成功"
+    return result
+
+
+@app.route('/iims/common/staff', methods=["GET"])
+@auth.auth_required
+def common_staff():
+    """
+    员工姓名数据查询接口
+    :return:
+    """
+    result = deepcopy(my_json)
+    result["status"] = 1
+    result["message"] = "数据返回成功"
+    result["data"] = TStaff.get_all_staff()
+    return result
+
+
+@app.route('/iims/common/class', methods=["PUT"])
+@auth.auth_required
+def common_class():
+    """
+    员工新增分组提交接口
+    :return:
+    """
+    result = deepcopy(my_json)
+    result["status"] = 1
+    result["message"] = "数据返回成功"
+    result["data"] = TStaff.get_all_staff()
     return result

@@ -8,7 +8,7 @@ from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSign
 from xd_REST import db
 from xd_REST.libs.aes import encrypt_oracle, decrypt_oracle
 from sqlalchemy import CHAR, Column, DateTime, String, or_
-from xd_REST import app, cache
+from xd_REST import app, cache, session
 from . import Base, metadata
 from .t_business_unit import TBusinessUnit
 # from xd_REST.logger import error_log
@@ -42,6 +42,11 @@ class TStaff(Base):
     ManageDepartmentId = Column(String(4096, 'Chinese_PRC_CI_AS'))
     ManageStaffId = Column(String(4096, 'Chinese_PRC_CI_AS'))
 
+    @staticmethod
+    def get_all_staff():
+        all_staff = session.query(TStaff.ID, TStaff.StaffName).all()
+        return [{"id": staff.ID, "name": staff.StaffName} for staff in all_staff]
+
     def init_password(self):
         self.device_password = encrypt_oracle(current_app.config.get("INIT_PASSWORD", "xd12345678"),
                                               current_app.config.get("AES_KEY", "12345678"))
@@ -55,17 +60,17 @@ class TStaff(Base):
         return decrypt_oracle(self.device_password, current_app.config.get("AES_KEY", "12345678"))
 
     def verify_password(self, password):
-        print(self.LoginPassword)
-        print("-------------")
-        print(self.delete_zero(password))
         return self.LoginPassword == self.delete_zero(password)
 
     def delete_zero(self, md5_str):
+        """
+        去除十六进制前面的0
+        :return:
+        """
         new_str = ""
         for i in range(0, len(md5_str), 2):
             num_s = md5_str[i:i + 2]
-            if num_s[0] == "0" and int(num_s[1], 16) > 9:
-
+            if num_s[0] == "0":
                 new_str += num_s[1]
             else:
                 new_str += num_s

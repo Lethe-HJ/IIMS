@@ -14,9 +14,9 @@ from urllib.parse import quote as urlquote
 
 
 
-SQLALCHEMY_DATABASE_URI = 'mssql+pymssql://hujing:wVYV7denNPOJntZ@127.0.0.1:1433/workdailyformal?charset=utf8'
+SQLALCHEMY_DATABASE_URI = 'mssql+pymssql://hujing:wVYV7denNPOJntZ@10.200.51.18:1433/workdailyformal?charset=utf8'
 # mssql+pymssql://Login:Password@Servername/DBname
-PORT = 47002
+PORT = 8081
 # redis信息
 REDIS_CONF = {
     "host": 'localhost',

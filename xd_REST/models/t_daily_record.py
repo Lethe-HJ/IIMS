@@ -8,7 +8,7 @@ from sqlalchemy import Column, DateTime, String, desc, and_
 from . import Base
 from .t_work_introduction import TWorkIntroduction as TbIntro
 from .t_project_summary import TProjectSummary as TbProject
-from .t_companyframe import t_T_CompanyFrame as CompanyFrame
+from .t_companyframe import CompanyFrame
 from .t_staff import TStaff
 from .t_concern_staff import TConcernStaff
 from xd_REST import session
@@ -47,7 +47,6 @@ class TDailyRecord(Base):
         start = kwargs["start"]  # 必选
         end = kwargs["end"]  # 必选
         detail = kwargs["detail"]  # 必选
-        pattern = kwargs["pattern"]  # 必选
         staff_id = kwargs["staff_id"]
         current_user = g.user.ID
         tb_daily = TDailyRecord  # 名字太长 换个短点的名字
@@ -62,6 +61,27 @@ class TDailyRecord(Base):
             end = datetime.strptime(end, '%Y-%m-%d')
             dailies = dailies.filter(TDailyRecord.WorkDate.between(start, end))
         return tb_daily.pack_daily_data(dailies, detail)
+
+    @staticmethod
+    def get_assembly(frame_id, start, end):
+        """
+        获取晨报
+        :param frame_id:
+        :param start:
+        :param end:
+        :return:
+        """
+        tb_daily = TDailyRecord
+        staff_li = CompanyFrame().get_staff_li(frame_id)
+        start = datetime.strptime(start, '%Y-%m-%d')
+        end = datetime.strptime(end, '%Y-%m-%d')
+        condition = and_(tb_daily.userid.in_(staff_li), tb_daily.WorkDate.between(start, end))
+
+        assembly = session.query(tb_daily.ID, tb_daily.WorkDate, tb_daily.Weeks, tb_daily.WorkHours,
+                                 tb_daily.WorkMatters, tb_daily.StaffName, tb_daily.ProjectName,
+                                 tb_daily.workintroId, tb_daily.userid, tb_daily.ProjectID
+                                 ).filter(condition).order_by(tb_daily.userid, tb_daily.WorkDate).all()
+        return tb_daily.pack_daily_data(assembly, True)
 
     @staticmethod
     def query_daily(detail, query=None):

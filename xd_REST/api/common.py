@@ -7,7 +7,7 @@ from xd_REST.models.t_work_introduction import TWorkIntroduction as TbIntros
 from xd_REST.models.t_project_summary import TProjectSummary as TbProject
 from xd_REST.models.t_staff import TStaff
 from xd_REST.models.t_work_property import TWorkProperty as TbProperty
-from xd_REST.models.t_companyframe import t_T_CompanyFrame as TFrame, FrameTree
+from xd_REST.models.t_companyframe import CompanyFrame as TFrame, FrameTree
 from xd_REST.models.t_daily_record import TDailyRecord as TbDaily
 from xd_REST.models.t_concern_staff import TConcernStaff
 # from xd_REST.logger import error_log
@@ -162,11 +162,11 @@ def common_staff():
     return result
 
 
-@app.route('/iims/common/class', methods=["PUT"])
+@app.route('/iims/personal_center/data', methods=["GET"])
 @auth.auth_required
-def common_class():
+def personal_center_data():
     """
-    员工新增分组提交接口
+    员工姓名数据查询接口
     :return:
     """
     result = deepcopy(my_json)

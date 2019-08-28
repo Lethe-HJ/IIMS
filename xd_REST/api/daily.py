@@ -27,9 +27,6 @@ def dailies_data():
     args["start"] = request.args.get('start', None)
     args["end"] = request.args.get('end', None)
     args["staff_id"] = request.args.get('staff_id', None)
-    args["pattern"] = str_boolean(request.args.get('pattern', False))  # 前端传过来的的true与false是字符串 需转为bool
-
-
     page = request.args.get('page', None)  # 分页预留
     per_page = request.args.get('per_page', None)  # 分页预留
     result["data"] = TbDaily.his_all_daily(**args)

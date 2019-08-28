@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+    function request(){
+        $.ajax({
+        type: "GET",
+        dataType: "json",
+        url: "test.json",
+        async: false,
+        success:
+            function(res){
+                console.log(res)
+            }
+        })
+    }
+    $(function(){
+        var i = 1;
+        setInterval(request, 500*(i++))
+
+
+    })
+
+
+</script>
+</html>

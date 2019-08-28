@@ -2,7 +2,7 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Table, Text, text, Unicode
 from sqlalchemy.dialects.mysql.enumerated import ENUM
-from flask import current_app
+from flask import request, current_app, g
 from sqlalchemy.dialects.mysql import BIGINT, JSON, ENUM, INTEGER, TIMESTAMP, TINYINT, VARCHAR
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from xd_REST import db
@@ -12,6 +12,7 @@ from xd_REST import app, cache, session
 from . import Base, metadata
 from .t_business_unit import TBusinessUnit
 # from xd_REST.logger import error_log
+from datetime import datetime
 
 
 class TStaff(Base):
@@ -85,8 +86,6 @@ class TStaff(Base):
         # db.session.commit()
         cache.set(id, token, timeout=3600)
 
-
-
     @staticmethod
     def verify_parse_token(token):
         s = Serializer(app.config['SECRET_KEY'])
@@ -98,3 +97,33 @@ class TStaff(Base):
             return None  # invalId token
         # user = db.session.query(UUser).get(data['id'])
         return data
+
+    @staticmethod
+    def staff_center_data():
+        staff_msg = session.query(TStaff.StaffName, TStaff.Department, TStaff.create_date)\
+            .filter_by(ID=g.user.ID).first()
+        firstday = staff_msg.create_date
+        today = datetime.now()
+        workage = (today - firstday).days
+        msg = {
+            "name": staff_msg.StaffName,
+            "department": staff_msg.Department,
+            "workage": workage
+        }
+        return True, "数据获取成功", msg
+
+    @staticmethod
+    def update_password(target_id, password):
+        current_staff = session.query(TStaff).filter_by(ID=g.user.ID).first()
+        target_staff = session.query(TStaff).filter_by(ID=target_id).first()
+        if current_staff.ID == target_staff.ID:  # 修改自己的密码 无条件允许
+            target_staff.LoginPassword = TStaff().delete_zero(password)
+            session.commit()
+        else:
+            if current_staff.staffrole > target_staff.staffrole:  # 修改他人的密码需要权限高于被修改者权限
+                target_staff.LoginPassword = TStaff().delete_zero(password)
+                session.commit()
+            else:
+                return False, "权限不够无法修改密码"
+        return True, "密码修改成功"
+

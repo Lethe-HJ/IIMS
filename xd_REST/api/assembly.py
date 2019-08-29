@@ -20,9 +20,9 @@ def assembly_data():
     :return:
     """
     result = deepcopy(dst.my_json)
-    frame_id = request.json.get("frame_id", None)
-    start = request.json.get("start", None)
-    end = request.json.get("end", None)
+    frame_id = request.args.get("frame_id", None)
+    start = request.args.get("start", None)
+    end = request.args.get("end", None)
     result["status"] = 1
     result["message"] = "数据返回成功"
     result["data"] = TbDaily.get_assembly(frame_id, start, end)

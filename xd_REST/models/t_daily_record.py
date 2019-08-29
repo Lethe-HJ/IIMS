@@ -72,6 +72,11 @@ class TDailyRecord(Base):
         :return:
         """
         tb_daily = TDailyRecord
+        if frame_id is None:
+            frame_name = session.query(TStaff.Department).filter_by(ID=g.user.ID).first()
+            frame_name = frame_name[0] if frame_name else ""
+            T_frame = CompanyFrame().T_frame
+            frame_id = session.query(T_frame.ID).filter(T_frame.Name == frame_name).first()
         staff_li = CompanyFrame().get_staff_li(frame_id)
         start = datetime.strptime(start, '%Y-%m-%d')
         end = datetime.strptime(end, '%Y-%m-%d')

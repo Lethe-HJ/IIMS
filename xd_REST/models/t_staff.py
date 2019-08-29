@@ -7,7 +7,7 @@ from sqlalchemy.dialects.mysql import BIGINT, JSON, ENUM, INTEGER, TIMESTAMP, TI
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from xd_REST import db
 from xd_REST.libs.aes import encrypt_oracle, decrypt_oracle
-from sqlalchemy import CHAR, Column, DateTime, String, or_
+from sqlalchemy import Column, DateTime, String
 from xd_REST import app, cache, session
 from . import Base, metadata
 from .t_business_unit import TBusinessUnit
@@ -127,3 +127,8 @@ class TStaff(Base):
                 return False, "权限不够无法修改密码"
         return True, "密码修改成功"
 
+    @staticmethod
+    def get_department_by_id(id):
+        department = session.query(TStaff.Department).filter_by(ID=id).first()
+        department = department[0] if department else ""
+        return department

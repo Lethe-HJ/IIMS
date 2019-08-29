@@ -28,13 +28,19 @@ class CompanyFrame:
     def __init__(self):
         self.T_frame = t_T_CompanyFrame.columns
 
-    def get_label(self):
-        frames = session.query(self.T_frame.Name, self.T_frame.staff).order_by(self.T_frame.ID).all()
+    def get_group(self, staff_id):
+        frames = session.query(self.T_frame.Name, self.T_frame.staff
+                               , self.T_frame.AllParentId).order_by(self.T_frame.ID).all()
         label = []
         for frame in frames:
             staff_li = frame.staff.strip(',').split(',') if frame.staff else []
-            if str(g.user.ID) in staff_li:
+            if str(staff_id) in staff_li:
                 label.append(frame.Name)
+                parent_li = frame.AllParentId.strip(',').split(',')
+                for parent_id in parent_li:
+                    parent_name = session.query(self.T_frame.Name).filter(self.T_frame.ID == str(parent_id)).first()
+                    parent_name = parent_name[0] if parent_name else ""
+                    label.append(parent_name)
         return label
 
     def get_staff_li(self, frame_id):
@@ -48,10 +54,9 @@ class CompanyFrame:
 class FrameTree:
     def __init__(self, pattern):
         self.t_frame = t_T_CompanyFrame
-        self.node = {
+        self.node = {  # 定义结点
             "ID": -1,
             "Name": "",
-            # "parents": [],
             "children": [],
             "children_li": [],
             "staff_li": [],
@@ -97,8 +102,8 @@ class FrameTree:
         :param node:
         :return:
         """
+        self.add_staff(node)
         if node["children_li"] == []:
-            self.add_staff(node)
             return
         for i in range(0, len(self.node_li)):
             if str(self.node_li[i]["ID"]) in node["children_li"]:

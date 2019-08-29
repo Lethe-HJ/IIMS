@@ -1,8 +1,6 @@
 ﻿from os import environ
 from xd_REST.api  import app
 
-
-
 if __name__ == '__main__':
 
     # gevent异步WEB服务---------------------------------------------------

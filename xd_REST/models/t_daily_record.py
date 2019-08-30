@@ -53,13 +53,13 @@ class TDailyRecord(Base):
         dailies = session.query(tb_daily.ID, tb_daily.WorkDate, tb_daily.Weeks, tb_daily.WorkHours,
                                 tb_daily.WorkMatters, tb_daily.StaffName, tb_daily.ProjectName,
                                 tb_daily.workintroId, tb_daily.userid, tb_daily.ProjectID,
-                                tb_daily.StaffName)
+                                tb_daily.StaffName, tb_daily.JobDescription)
         user_id = staff_id if staff_id else current_user  # 如果有staff_id 则为查看他人日报 否则则为查看自己的工作日报
         dailies = dailies.filter(TDailyRecord.userid == user_id)
         if start and end:  # 筛选时间
             start = datetime.strptime(start, '%Y-%m-%d')  # 将日期字符串格式化成日期对象
             end = datetime.strptime(end, '%Y-%m-%d')
-            dailies = dailies.filter(TDailyRecord.WorkDate.between(start, end))
+            dailies = dailies.filter(TDailyRecord.WorkDate.between(start, end)).order_by(TDailyRecord.WorkDate.desc())
         return tb_daily.pack_daily_data(dailies, detail)
 
     @staticmethod
@@ -83,8 +83,8 @@ class TDailyRecord(Base):
         condition = and_(tb_daily.userid.in_(staff_li), tb_daily.WorkDate.between(start, end))
 
         assembly = session.query(tb_daily.ID, tb_daily.WorkDate, tb_daily.Weeks, tb_daily.WorkHours,
-                                 tb_daily.WorkMatters, tb_daily.StaffName, tb_daily.ProjectName,
-                                 tb_daily.workintroId, tb_daily.userid, tb_daily.ProjectID
+                                 tb_daily.JobDescription, tb_daily.WorkMatters, tb_daily.StaffName,
+                                 tb_daily.ProjectName, tb_daily.workintroId, tb_daily.userid, tb_daily.ProjectID
                                  ).filter(condition).order_by(tb_daily.userid, tb_daily.WorkDate).all()
         return tb_daily.pack_daily_data(assembly, True)
 
@@ -107,10 +107,10 @@ class TDailyRecord(Base):
             data = dict()  # 每次循环需要重新新建data字典
             data["daily_id"] = daily.ID  # 工作日报id
             # 工作简介名称
-            work_intro = session.query(TbIntro.workintro).filter_by(id=daily.workintroId).first()
+            work_intro = daily.JobDescription
             data["work_intro"] = "None" if work_intro is None else work_intro[0]
             # 项目名称
-            data["project_name"] = session.query(TbProject.ProjectName).filter_by(ID=daily.ProjectID).first()[0]
+            data["project_name"] = daily.ProjectName
             data["work_date"] = str(daily.WorkDate)  # 工作日期
             data["Weeks"] = daily.Weeks
             data["StaffName"] = daily.StaffName

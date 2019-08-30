@@ -27,22 +27,32 @@ t_T_CompanyFrame = Table(
 class CompanyFrame:
     def __init__(self):
         self.T_frame = t_T_CompanyFrame.columns
+        self.frame_query = session.query(self.T_frame.ID, self.T_frame.Name, self.T_frame.staff, self.T_frame.IsLeaf
+                                         , self.T_frame.AllParentId).order_by(self.T_frame.ID.desc()).all()
+        # 查询ID, Name, staff, AllParentId
+
+        self.frame_dict = self.frame_dict_init()
+
+    def frame_dict_init(self):
+        frame_dict = dict()
+        for frame in self.frame_query:
+            frame_dict[str(frame.ID)] = frame.Name
+        return frame_dict
 
     def get_group(self, staff_id):
-        frames = session.query(self.T_frame.Name, self.T_frame.staff, self.T_frame.IsLeaf
-                               , self.T_frame.AllParentId).order_by(self.T_frame.ID).all()
+
         label = []
-        for frame in frames:
-            staff_li = frame.staff.strip(',').split(',') if frame.staff else []
-            if (str(staff_id) in staff_li) and frame.IsLeaf == 1:
-                label.append(frame.Name)
-                parent_li = frame.AllParentId.strip(',').split(',')
-                for parent_id in parent_li:
-                    parent_name = session.query(self.T_frame.Name).filter(self.T_frame.ID == str(parent_id)).first()
-                    parent_name = parent_name[0] if parent_name else ""
-                    label.append(parent_name)
+        for frame in self.frame_query:  # 遍历查询结果
+            staff_li = frame.staff.strip(',').split(',') if frame.staff else []  # 如果有staff 就分割成列表
+            if str(staff_id) in staff_li:  # 如果目标id在这个列表中
+                if frame.Name not in label:
+                    label.append(frame.Name)  # 将这个记录的Name追加到其中
+                parent_li = frame.AllParentId.strip(',').split(',')  # 获取它的全部父级id组成的的列表
+                for parent_id in parent_li:  # 遍历这些父级
+                    if parent_id in self.frame_dict and self.frame_dict[parent_id] not in label:
+                        label.append(self.frame_dict[parent_id])
         label.reverse()
-        return list(set(label[1:]))
+        return label[1:]
 
     def get_staff_li(self, frame_id):
         staff = session.query(self.T_frame.staff) \
@@ -70,6 +80,13 @@ class FrameTree:
         self.node_li = self.get_node_li()
         self.root = None
         self.pattern = pattern
+        self.staff_record = dict()
+        self.staff_record_init()
+
+    def staff_record_init(self):
+        staff = TStaff.get_all_staff()
+        for stf in staff:
+            self.staff_record[str(stf["id"])] = stf["name"]
 
     def get_node_li(self):
         """
@@ -116,8 +133,9 @@ class FrameTree:
             for staff_id in node["staff_li"]:
                 staff = copy.deepcopy(self.staff)
                 staff["ID"] = int(staff_id)
-                name_ob = session.query(TStaff.StaffName).filter_by(ID=staff["ID"]).first()
-                staff["Name"] = name_ob[0] if name_ob else ""
+                # name_ob = session.query(TStaff.StaffName).filter_by(ID=staff["ID"]).first()
+                # staff["Name"] = name_ob[0] if name_ob else ""
+                staff["Name"] = self.staff_record[staff_id]
                 node["children"].append(staff)
 
 

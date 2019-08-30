@@ -58,7 +58,7 @@ def staff_group():
     :return: dst.my_json字典
     """
     result = deepcopy(my_json)  # 存储给用户的提示信息msg以及给前端的状态码
-    staff_id = request.args.get('staff_id', g.user.ID)  # 默认为当前用户id
+    staff_id = request.args.get('target_id', g.user.ID)  # 默认为当前用户id
     result["data"] = CompanyFrame().get_group(staff_id)
     result["status"] = 1
     return result

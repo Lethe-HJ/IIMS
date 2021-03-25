@@ -23,7 +23,7 @@ pycparser==2.19
 pycryptodome==3.8.2
 pymssql==2.1.4
 PyMySQL==0.9.3
-PyYAML==5.1.1
+PyYAML==5.4
 redis==3.3.2
 requests==2.22.0
 shellescape==3.4.1

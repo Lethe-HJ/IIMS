@@ -6,7 +6,7 @@ Click==7.0
 client==0.0.1
 Flask==1.1.1
 Flask-API==1.1
-Flask-Cors==3.0.8
+Flask-Cors==3.0.9
 Flask-DebugTool==0.1.8
 Flask-HTTPAuth==3.3.0
 flask-sqlacodegen==1.1.6.1
